@@ -1,0 +1,388 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #222;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+#game-container {
+    width: 1600px;
+    height: 900px;
+    position: relative;
+    background-color: #000;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+/* --- Fade Transition Overlay --- */
+#fade-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    opacity: 0; /* Start completely transparent */
+    pointer-events: none; /* Let clicks pass through when transparent */
+    z-index: 50; /* Ensure it is above everything else, like the background */
+    
+    /* This sets the speed of the fade effect */
+    transition: opacity 0.5s ease-in-out; 
+}
+
+/* --- Return Button --- */
+#return-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 60; /* Ensure it's above everything but the start screen */
+    
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    padding: 8px 15px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+    
+    display: none; /* Hidden until the game starts moving */
+}
+
+#return-btn:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+    /* --- Start Screen --- */
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('bg/start.png');
+            background-size: contain;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        h1 {
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px #000;
+        }
+
+        #start-btn {
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            background-color: white;
+            align-items: center;
+            border: none;
+            border-radius: 5px;
+            transition: transform 0.2s;
+        }
+
+        #start-btn:hover {
+            transform: scale(1.1);
+            background-color: #eee;
+        }
+
+    /* --- Gameplay Screen --- */
+        #game-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+
+        #background-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: background-image 0.5s ease-in-out;
+        }
+
+        #character-layer {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 80%;
+            transition: opacity 0.3s ease;
+            pointer-events: none; /* Let clicks pass through character */
+        }
+
+        #character-img {
+            height: 100%;
+            display: block;
+        }
+
+    /* Dialogue Box */
+        #dialogue-box {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid white;
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #speaker-name {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #ff6600;
+            margin-bottom: 10px;
+        }
+
+        #dialogue-text {
+            font-size: 1.1rem;
+            line-height: 1.4;
+            min-height: 60px;
+            /* This is the magic line that fixes the animation: */
+            white-space: pre-wrap; 
+        }
+
+        /* Blinking arrow */
+        #next-indicator {
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            animation: blink 1s infinite;
+            display: none; /* Hidden while typing */
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* --- Choice Buttons Container --- */
+        #choices-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4); /* Slight dim */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 15; /* Above character, below start screen */
+            display: none; /* Hidden by default */
+            box-sizing: border-box;
+            -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
+        }
+
+        .choice-btn {
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 2px solid #000;
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 8px;
+            min-width: 300px;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        .choice-btn:hover {
+            background-color: #ffcc00;
+            transform: scale(1.05);
+        }
+
+/* --- Image Selection Mode --- */
+
+/* This class will be added via JS when we have image choices */
+#choices-container.image-choice-mode {
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 20px 20px 220px 20px; /* Extra bottom padding for dialogue */
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Image button wrapper */
+.img-choice-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  max-width: 280px;
+  max-height: 350px;
+  flex-shrink: 0;
+}
+
+/* The image itself */
+.img-choice-btn img {
+  height: auto;
+  width: auto;
+  max-height: 300px;
+  max-width: 250px;
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
+  transition: filter 0.2s, transform 0.12s;
+  border-radius: 6px;
+}
+
+/* Hover effects */
+.img-choice-btn:hover {
+    transform: scale(1.08);
+    z-index: 100;
+}
+
+.img-choice-btn:hover img {
+    filter: drop-shadow(0 0 15px gold);
+}
+
+/* Tooltip */
+.candidate-name-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0,0,0,0.85);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-size: 1rem;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 101;
+}
+
+.img-choice-btn:hover .candidate-name-tooltip,
+.img-choice-btn:focus .candidate-name-tooltip {
+    opacity: 1;
+}
+
+/* RESPONSIVE FIXES */
+
+/* Phones (portrait & small screens) */
+@media (max-width: 700px) {
+    #game-container {
+        width: 100vw;
+        height: 100vh;
+        max-height: 100vh;
+    }
+
+    #dialogue-box {
+        width: 95%;
+        height: auto;
+        min-height: 140px;
+        max-height: 180px;
+        font-size: 0.95rem;
+        bottom: 10px;
+        padding: 12px;
+    }
+
+    #speaker-name {
+        font-size: 1rem;
+        margin-bottom: 6px;
+    }
+
+    #dialogue-text {
+        font-size: 0.95rem;
+        line-height: 1.3;
+    }
+
+    /* CRITICAL FIX FOR MOBILE IMAGE CHOICES */
+    #choices-container.image-choice-mode {
+        flex-direction: column;
+        gap: 12px;
+        padding: 15px 15px 200px 15px; /* Large bottom padding for dialogue */
+        justify-content: flex-start; /* Start from top */
+        padding-top: 30px; /* Add top padding */
+    }
+
+    .img-choice-btn {
+        max-width: 160px;
+        max-height: 220px;
+    }
+
+    .img-choice-btn img {
+        max-height: 180px;
+        max-width: 150px;
+        border-radius: 8px;
+    }
+
+    .candidate-name-tooltip {
+        font-size: 0.85rem;
+        padding: 4px 8px;
+    }
+}
+
+/* Tablets */
+@media (min-width: 701px) and (max-width: 1100px) {
+    #game-container {
+        width: 95vw;
+        height: auto;
+        aspect-ratio: 16 / 9;
+    }
+
+    #dialogue-box {
+        width: 90%;
+        font-size: 1.05rem;
+    }
+
+    #choices-container.image-choice-mode {
+        gap: 18px;
+        padding: 18px 18px 200px 18px;
+    }
+
+    .img-choice-btn {
+        max-width: 220px;
+        max-height: 280px;
+    }
+
+    .img-choice-btn img {
+        max-height: 240px;
+        max-width: 200px;
+    }
+}
+
+/* Desktop - larger screens */
+@media (min-width: 1101px) {
+    #choices-container.image-choice-mode {
+        gap: 25px;
+        padding: 25px 25px 220px 25px;
+    }
+}
