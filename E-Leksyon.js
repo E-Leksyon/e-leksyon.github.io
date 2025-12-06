@@ -3,6 +3,7 @@
     const storyScript = [
         // 0: Intro
         {
+            music: "music/scene 1.mp3",
             bg: "bg/farm.jpg", 
             sprite: "",
             name: "", 
@@ -29,6 +30,7 @@
         
         // 2: Pig Platforms
         {
+            music: "music/candidate bob uy.mp3",
             transition: 'none',
             bg: "bg/court.jpg", 
             sprite: "sprites/pig.png",
@@ -49,6 +51,7 @@
         },
         // 3: Goat Platform
         {
+            music: "music/candidate ka ambing.mp3",
             transition: 'none',
             bg: "bg/court.jpg", 
             sprite: "sprites/goat.png",
@@ -71,6 +74,7 @@
         },
         // 4: Dog Platform
         {
+            music: "music/candidate aso.mp3",
             transition: 'none',
             bg: "bg/court.jpg",
             sprite: "sprites/dog.png",
@@ -100,6 +104,7 @@
         },
         // 5: Crocodile Platform
         {
+            music: "music/candidate kroks.mp3",
             transition: 'none',
             bg: "bg/court.jpg",
             sprite: "sprites/crocodile.png",
@@ -131,6 +136,7 @@
         },
         // 7: Start of Scene 4
         {
+            music: "music/scene 4.mp3",
             transition: 'none', 
             bg: "bg/barangay.png",
             sprite: "",
@@ -211,6 +217,7 @@
         },
         // 15
         {
+            music: "music/scene 6.mp3",
             transition: 'fade',
             bg: "bg/school.jpg",
             sprite: "",
@@ -323,6 +330,7 @@
         },
         // 24
         {
+            music: "music/scenes 7-8.mp3",
             bg: "bg/house.jpg",
             sprite: "",
             name: "",
@@ -439,6 +447,7 @@ const endingMap = {
     "Brownie Moleno": 29,     
     "Krok O. Dayle alyas Boy Kagat": 31,
 };
+const bgmAudio = document.getElementById('bgm-audio');
 
 // VARIABLES
 
@@ -449,6 +458,7 @@ let currentFullText = "";
 let currentLineIndex = 0; // Tracks which line in the 'lines' array we are on
 let currentSceneLines = []; // Holds the array of lines for the active scene
 let storyHistory = [];
+let currentMusic = null;
 
 // FUNCTIONS 
 //history
@@ -467,6 +477,46 @@ function startGame() {
     renderScene();
 }
 
+function playMusic(musicFile) {
+    // If no music file specified, do nothing
+    if (!musicFile) return;
+    
+    // If it's the same music already playing, don't restart it
+    if (currentMusic === musicFile && !bgmAudio.paused) {
+        return;
+    }
+    
+    // Update current music tracker
+    currentMusic = musicFile;
+    
+    // Set the audio source and play
+    bgmAudio.src = musicFile;
+    bgmAudio.volume = 0.5; // Set volume (0.0 to 1.0)
+    bgmAudio.play().catch(error => {
+        console.log("Audio play failed:", error);
+    });
+}
+
+function stopMusic() {
+    bgmAudio.pause();
+    bgmAudio.currentTime = 0;
+    currentMusic = null;
+}
+
+function fadeOutMusic(duration = 1000) {
+    const startVolume = bgmAudio.volume;
+    const fadeStep = startVolume / (duration / 50); // 50ms intervals
+    
+    const fadeInterval = setInterval(() => {
+        if (bgmAudio.volume > fadeStep) {
+            bgmAudio.volume -= fadeStep;
+        } else {
+            bgmAudio.volume = 0;
+            bgmAudio.pause();
+            clearInterval(fadeInterval);
+        }
+    }, 50);
+}
 //return
 function goBack() {
     if (storyHistory.length > 0) {
@@ -574,6 +624,10 @@ function renderScene() {
                 // 2. SWAP CONTENT (Behind the black screen)
                 swapContent(currentScene);
                 
+                // MUSIC
+                if (currentScene.music) {
+                playMusic(currentScene.music);
+                 }
                 // 3. FADE IN
                 fadeOverlay.style.opacity = 0;
                 
@@ -610,6 +664,9 @@ function renderScene() {
             // If transition is 'none', update content and start typing immediately
             swapContent(currentScene);
 
+            if (currentScene.music) {
+            playMusic(currentScene.music);
+            }
             dialogueBox.style.pointerEvents = 'auto';
 
         // --- NEW LOGIC CHECK ---
